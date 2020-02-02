@@ -7,7 +7,7 @@
  *  2017全智道(北京)科技有限公司-版权所有
  * 
  */
-package jingubang.aes.pkcs7padding;
+package jingubang.audio;
 
 
 import java.io.UnsupportedEncodingException;
