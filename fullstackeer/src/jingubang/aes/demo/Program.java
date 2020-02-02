@@ -1,4 +1,4 @@
-package demo;
+package jingubang.aes.demo;
 
 import java.io.StringReader;
 
@@ -10,7 +10,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import com.qq.weixin.mp.aes.WXBizMsgCrypt;
+import jingubang.aes.WXBizMsgCrypt;
 
 public class Program {
 
