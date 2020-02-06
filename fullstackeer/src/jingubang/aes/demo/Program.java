@@ -16,9 +16,7 @@ public class Program {
 
 	public static void main(String[] args) throws Exception {
 
-		//
-		// 第三方回复公众平台
-		//
+	
 
 		// 需要加密的明文
 		String encodingAesKey = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG";
