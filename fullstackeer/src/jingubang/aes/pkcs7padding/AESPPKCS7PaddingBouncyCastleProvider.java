@@ -1,4 +1,4 @@
-package jingubang.aes.demo;
+package jingubang.aes.pkcs7padding;
 
 import java.security.Security;
 import javax.crypto.Cipher;
