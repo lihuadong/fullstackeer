@@ -10,9 +10,29 @@ import org.apache.commons.codec.binary.Base64;
 
 import jingubang.aes.PKCS7Encoder;
 
-public class BaiduDecryptUtil {
+
+public class AesEncodeUtil4PKCS7PaddingDecrypt {
 	
     private static Charset CHARSET = Charset.forName("utf-8");
+    
+    
+	/**
+	 * 加密
+	 * 
+	 * @param cleartext
+	 * @return
+	 */
+	public static String encrypt(String cleartext) {
+		
+		try {
+			return ""; 
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ""; 
+		}
+	}
+ 
     
     /**
      * 对密文进行解密
@@ -40,7 +60,6 @@ public class BaiduDecryptUtil {
         }
         
         String xmlContent;
-        String fromClientId;
         try {
             // 去除补位字符
             byte[] bytes = PKCS7Encoder.decode(original);
@@ -48,7 +67,6 @@ public class BaiduDecryptUtil {
             byte[] networkOrder = Arrays.copyOfRange(bytes, 16, 20);
             int xmlLength = recoverNetworkBytesOrder(networkOrder);
             xmlContent = new String(Arrays.copyOfRange(bytes, 20, 20 + xmlLength), CHARSET);
-            fromClientId = new String(Arrays.copyOfRange(bytes, 20 + xmlLength, bytes.length), CHARSET);
         } catch (Exception e) {
             throw new Exception(e);
         }
@@ -82,8 +100,11 @@ public class BaiduDecryptUtil {
     public static void main(String[] args) throws Exception{
         String ecryptData= "OpCoJgs7RrVgaMNDixIvaCIyV2SFDBNLivgkVqtzq2GC10egsn+PKmQ/+5q+chT8xzldLUog2haTItyIkKyvzvmXonBQLIMeq54axAu9c3KG8IhpFD6+ymHocmx07ZKi7eED3t0KyIxJgRNSDkFk5RV1ZP2mSWa7ZgCXXcAbP0RsiUcvhcJfrSwlpsm0E1YJzKpYy429xrEEGvK+gfL+Cw==";
         String sessionKey = "1df09d0a1677dd72b8325aec59576e0c";
-        BaiduDecryptUtil demo = new BaiduDecryptUtil();
+        AesEncodeUtil4PKCS7PaddingDecrypt demo = new AesEncodeUtil4PKCS7PaddingDecrypt();
         String jsonStr= demo.decrypt(ecryptData, sessionKey);
         System.out.println(jsonStr);
     }
+    
+    
+
 }
