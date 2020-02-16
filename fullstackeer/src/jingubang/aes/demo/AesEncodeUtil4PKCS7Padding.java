@@ -1,23 +1,21 @@
 package jingubang.aes.demo;
 
+import java.nio.charset.Charset;
+import java.util.Arrays;
+
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
- 
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
+import org.apache.commons.codec.binary.Base64;
+
+import jingubang.aes.PKCS7Encoder;
+
 
 public class AesEncodeUtil4PKCS7Padding {
-
- 	//初始向量
-	public static final String VIPARA = "aabbccddeeffgghh";   //AES 为16bytes. DES 为8bytes
 	
-	//编码方式
-	public static final String bm = "UTF-8";
-	
-	//私钥
-	private static final String ASE_KEY="aabbccddeeffgghh";   //AES固定格式为128/192/256 bits.即：16/24/32bytes。DES固定格式为128bits，即8bytes。
-	
+    private static Charset CHARSET = Charset.forName("utf-8");
+    
+    
 	/**
 	 * 加密
 	 * 
@@ -25,71 +23,89 @@ public class AesEncodeUtil4PKCS7Padding {
 	 * @return
 	 */
 	public static String encrypt(String cleartext) {
-		//加密方式： AES128(CBC/PKCS5Padding) + Base64, 私钥：aabbccddeeffgghh
+		
 		try {
-			IvParameterSpec zeroIv = new IvParameterSpec(VIPARA.getBytes());
-			//两个参数，第一个为私钥字节数组， 第二个为加密方式 AES或者DES
-			SecretKeySpec key = new SecretKeySpec(ASE_KEY.getBytes(), "AES");
-			//实例化加密类，参数为加密方式，要写全
+			return ""; 
 			
-			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding"); //PKCS5Padding比PKCS7Padding效率高，PKCS7Padding可支持IOS加解密
-			
-			 //初始化，此方法可以采用三种方式，按加密算法要求来添加。（1）无第三个参数（2）第三个参数为SecureRandom random = new SecureRandom();中random对象，随机数。(AES不可采用这种方法)（3）采用此代码中的IVParameterSpec
-			cipher.init(Cipher.ENCRYPT_MODE, key, zeroIv);
-			//加密操作,返回加密后的字节数组，然后需要编码。主要编解码方式有Base64, HEX, UUE,7bit等等。此处看服务器需要什么编码方式
-			byte[] encryptedData = cipher.doFinal(cleartext.getBytes(bm));
- 
-			return new BASE64Encoder().encode(encryptedData);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ""; 
 		}
 	}
  
-	/**
-	 * 解密
-	 * 
-	 * @param encrypted
-	 * @return
-	 */
-	public static String decrypt(String encrypted) {
-		try {
-			byte[] byteMi = new BASE64Decoder().decodeBuffer(encrypted);
-			IvParameterSpec zeroIv = new IvParameterSpec(VIPARA.getBytes());
-			SecretKeySpec key = new SecretKeySpec(
-					ASE_KEY.getBytes(), "AES");
-			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-			//与加密时不同MODE:Cipher.DECRYPT_MODE
-			cipher.init(Cipher.DECRYPT_MODE, key, zeroIv);
-			byte[] decryptedData = cipher.doFinal(byteMi);
-			return new String(decryptedData, bm);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return "";
-		}
-	}
- 
-	/**
-	 * 测试
-	 * 
-	 * @param args
-	 * @throws Exception
-	 */
-	public static void main(String[] args) throws Exception {
- 
- 
-		String content = "https://fullstackeer.com";
-		// 加密
-		System.out.println("加密前：" + content);
-		String encryptResult = encrypt(content);
-		
-		System.out.println("加密后：" + new String(encryptResult));
-		// 解密
-		String decryptResult = decrypt(encryptResult);
-		System.out.println("解密后：" + new String(decryptResult));
- 
- 
-	}
+    
+    /**
+     * 对密文进行解密
+     *
+     * @param text 需要解密的密文
+     *
+     * @return 解密得到的明文
+     * @throws Exception 异常错误信息
+     * @author xjin21cen
+     */
+    public String decrypt(String text, String sessionKey)
+            throws Exception{
+    	
+        byte [] aesKey = Base64.decodeBase64(sessionKey + "=");
+        byte[] original;
+        try {
+            Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
+            SecretKeySpec keySpec = new SecretKeySpec(aesKey, "AES");
+            IvParameterSpec iv = new IvParameterSpec(Arrays.copyOfRange(aesKey, 0, 16));
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, iv);
+            byte[] encrypted = Base64.decodeBase64(text);
+            original = cipher.doFinal(encrypted);
+        } catch (Exception e) {
+            throw new Exception(e);
+        }
+        
+        String xmlContent;
+        try {
+            // 去除补位字符
+            byte[] bytes = PKCS7Encoder.decode(original);
+            // 分离16位随机字符串,网络字节序和ClientId
+            byte[] networkOrder = Arrays.copyOfRange(bytes, 16, 20);
+            int xmlLength = recoverNetworkBytesOrder(networkOrder);
+            xmlContent = new String(Arrays.copyOfRange(bytes, 20, 20 + xmlLength), CHARSET);
+        } catch (Exception e) {
+            throw new Exception(e);
+        }
+        return xmlContent;
+    }
+    
+    
+    /**
+     * 还原4个字节的网络字节序
+     *
+     * @param orderBytes 字节码
+     *
+     * @return sourceNumber
+     */
+    private int recoverNetworkBytesOrder(byte[] orderBytes) {
+        int sourceNumber = 0;
+        int length = 4;
+        int number = 8;
+        for (int i = 0; i < length; i++) {
+            sourceNumber <<= number;
+            sourceNumber |= orderBytes[i] & 0xff;
+        }
+        return sourceNumber;
+    }
+
+    /**
+     * 加密机密demo
+     * @param args
+     * @throws MobileException 
+     */
+    public static void main(String[] args) throws Exception{
+    	
+        String ecryptData= "OpCoJgs7RrVgaMNDixIvaCIyV2SFDBNLivgkVqtzq2GC10egsn+PKmQ/+5q+chT8xzldLUog2haTItyIkKyvzvmXonBQLIMeq54axAu9c3KG8IhpFD6+ymHocmx07ZKi7eED3t0KyIxJgRNSDkFk5RV1ZP2mSWa7ZgCXXcAbP0RsiUcvhcJfrSwlpsm0E1YJzKpYy429xrEEGvK+gfL+Cw==";
+        String sessionKey = "1df09d0a1677dd72b8325aec59576e0c";
+        AesEncodeUtil4PKCS7Padding demo = new AesEncodeUtil4PKCS7Padding();
+        String jsonStr= demo.decrypt(ecryptData, sessionKey);
+        System.out.println(jsonStr);
+    }
+    
+    
 
 }
-
