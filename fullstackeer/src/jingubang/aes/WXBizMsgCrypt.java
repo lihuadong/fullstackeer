@@ -8,7 +8,7 @@
 
 /**
  * 针对org.apache.commons.codec.binary.Base64，
- * 需要导入架包commons-codec-1.9（或commons-codec-1.8等其他版本）
+ * 需要导入架包commons-codec-1.9（或commons-coded-1.8等其他版本）
  * 官方下载地址：http://commons.apache.org/proper/commons-codec/download_codec.cgi
  */
 package jingubang.aes;
@@ -39,6 +39,7 @@ import org.apache.commons.codec.binary.Base64;
  * </ol>
  */
 public class WXBizMsgCrypt {
+	
 	static Charset CHARSET = Charset.forName("utf-8");
 	Base64 base64 = new Base64();
 	byte[] aesKey;
@@ -103,6 +104,7 @@ public class WXBizMsgCrypt {
 	 * @throws AesException aes加密失败
 	 */
 	String encrypt(String randomStr, String text) throws AesException {
+		
 		ByteGroup byteCollector = new ByteGroup();
 		byte[] randomStrBytes = randomStr.getBytes(CHARSET);
 		byte[] textBytes = text.getBytes(CHARSET);
